@@ -15,9 +15,9 @@ var irate = orate          // internal sample rate
 type Sample float32
 
 type ModIO struct {
-	i map[string](Recver),
-	o map[string](Sender),
-	p map[string]string,
+	i map[string](Recver)
+	o map[string](Sender)
+	p map[string]string
 }
 
 type Modentry struct {
