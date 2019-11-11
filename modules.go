@@ -1,9 +1,9 @@
 package main
 
 import (
-	"os"
-	"math"
 	"encoding/binary"
+	"math"
+	"os"
 	"strconv"
 )
 
@@ -21,11 +21,12 @@ type ModIO struct {
 }
 
 type Modentry struct {
-	Func        func(ModIO)
-	Inputs      []string                // Sample stream inputs
-	Parameters  []string                // Static parameters
-	Outputs     []string                // Sample stream outputs
+	Func       func(ModIO)
+	Inputs     []string // Sample stream inputs
+	Parameters []string // Static parameters
+	Outputs    []string // Sample stream outputs
 }
+
 var Modtbl map[string]Modentry
 
 func init() {
@@ -42,9 +43,9 @@ type Recver interface {
 
 func init() {
 	Modtbl["constval"] = Modentry{
-		Func: constval,
-		Outputs: []string{ "out" },
-		Parameters: []string{ "val" },
+		Func:       constval,
+		Outputs:    []string{"out"},
+		Parameters: []string{"val"},
 	}
 }
 
@@ -73,8 +74,8 @@ func ewrite(outf *os.File, obuf []byte) {
 func init() {
 	Modtbl["out"] = Modentry{
 		// out is a special case, its function doesn't fit the mold
-		Inputs: []string{ "in" },
-		Parameters: []string{ "stereo" },
+		Inputs:     []string{"in"},
+		Parameters: []string{"stereo"},
 	}
 }
 
@@ -82,7 +83,7 @@ func out(m ModIO, outf *os.File, obufsiz int) {
 	in := m.i["in"]
 	obuf := make([]byte, obufsiz)
 	to := obuf
-	
+
 	bc := make(chan byte)
 	sc := make(chan Sample)
 	go func() {
@@ -95,8 +96,8 @@ func out(m ModIO, outf *os.File, obufsiz int) {
 	go func() {
 		bs := make([]byte, 2)
 		for {
-			s := <- sc
-			binary.LittleEndian.PutUint16(bs, uint16(s * Sample(odepth)))
+			s := <-sc
+			binary.LittleEndian.PutUint16(bs, uint16(s*Sample(odepth)))
 			for _, b := range bs {
 				bc <- b
 			}
@@ -114,9 +115,9 @@ func out(m ModIO, outf *os.File, obufsiz int) {
 
 func init() {
 	Modtbl["add"] = Modentry{
-		Func: add,
-		Inputs: []string{ "in1", "in2" },
-		Outputs: []string{ "out" },
+		Func:    add,
+		Inputs:  []string{"in1", "in2"},
+		Outputs: []string{"out"},
 	}
 }
 
@@ -132,9 +133,9 @@ func add(m ModIO) {
 
 func init() {
 	Modtbl["mul"] = Modentry{
-		Func: mul,
-		Inputs: []string{ "in1", "in2" },
-		Outputs: []string{ "out" },
+		Func:    mul,
+		Inputs:  []string{"in1", "in2"},
+		Outputs: []string{"out"},
 	}
 }
 
@@ -150,9 +151,9 @@ func mul(m ModIO) {
 
 func init() {
 	Modtbl["ramp"] = Modentry{
-		Func: ramp,
-		Inputs: []string{ "freq" },
-		Outputs: []string{ "out" },
+		Func:    ramp,
+		Inputs:  []string{"freq"},
+		Outputs: []string{"out"},
 	}
 }
 
@@ -167,22 +168,22 @@ func ramp(m ModIO) {
 		} else if f != lastf {
 			slope = 1 / (float64(irate) / float64(f))
 		}
-		
+
 		s += slope
 		s = math.Mod(s, 1)
-		
+
 		lastf = f
 		f = ifreq.Recv()
-		
+
 		out.Send(Sample(s))
 	}
 }
 
 func init() {
 	Modtbl["sinshp"] = Modentry{
-		Func: sinshp,
-		Inputs: []string{ "in" },
-		Outputs: []string{ "out" },
+		Func:    sinshp,
+		Inputs:  []string{"in"},
+		Outputs: []string{"out"},
 	}
 }
 

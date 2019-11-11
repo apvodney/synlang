@@ -3,8 +3,8 @@
 package main
 
 import (
-	"syscall"
 	"os"
+	"syscall"
 )
 
 func IsMundaneError(err error) bool {

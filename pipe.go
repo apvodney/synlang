@@ -10,8 +10,8 @@ type BufPipe struct {
 	complete int           // number of completed ends
 	swaplock *sync.RWMutex // other half of lock given to swapcond
 	swapcond *sync.Cond    // buffers have been swapped condition
-	sendbuf  []Sample      // 
-	recvbuf  []Sample      // 
+	sendbuf  []Sample      //
+	recvbuf  []Sample      //
 }
 
 type BPEnd struct {
@@ -54,16 +54,16 @@ func (e *BPEnd) swap() {
 		go func() {
 			e.recvbuf, e.sendbuf = e.sendbuf, e.recvbuf
 			e.complete = 0
-			
-			e.swaplock.Lock()  // Make sure all ends are Wait-ing
+
+			e.swaplock.Lock() // Make sure all ends are Wait-ing
 			e.swapcond.Broadcast()
 			e.swaplock.Unlock()
-			
+
 			return
 		}()
 	}
 	e.complock.Unlock()
-	
+
 	e.swapcond.Wait()
 }
 
@@ -93,7 +93,7 @@ type UnbufPipe struct {
 
 type UBPEnd struct {
 	*UnbufPipe
-	id int      // index of chan to recv from
+	id int // index of chan to recv from
 }
 
 func NewUnbufPipe() *UnbufPipe {
@@ -104,14 +104,14 @@ func (p *UnbufPipe) NewRecver() *UBPEnd {
 	p.recvers = append(p.recvers, make(chan Sample, 1)) // I lied, there's a little buffer
 	return &UBPEnd{
 		UnbufPipe: p,
-		id: len(p.recvers) - 1,
+		id:        len(p.recvers) - 1,
 	}
 }
 
 func (p *UnbufPipe) NewSender() *UBPEnd {
 	return &UBPEnd{
 		UnbufPipe: p,
-		id: -1,
+		id:        -1,
 	}
 }
 
@@ -122,5 +122,5 @@ func (e *UBPEnd) Send(s Sample) {
 }
 
 func (e *UBPEnd) Recv() Sample {
-	return <- e.recvers[e.id]
+	return <-e.recvers[e.id]
 }
