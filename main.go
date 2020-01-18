@@ -22,8 +22,7 @@ func init() {
 }
 
 func main() {
-	var outf *os.File
-	var err error
+
 	intc := make(chan os.Signal, 1)
 	signal.Notify(intc, os.Interrupt)
 	go func() {
@@ -31,20 +30,8 @@ func main() {
 		os.Exit(1)
 	}()
 
-	if len(os.Args) >= 2 {
-		switch f := os.Args[1]; f {
-		case "-":
-			outf = os.Stdout
-		default:
-			outf, err = os.OpenFile(f, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0755)
-		}
-	} else {
-		outf, err = os.OpenFile("/dev/audio", os.O_WRONLY, 0755)
-	}
-	check(err)
-
-	_ = outf
-
+	// Right now, we're just testing the pipes.
+	// This test is from when there was a race bug.
 	p := NewBufPipe(1024)
 	s := p.NewSender()
 
@@ -69,6 +56,21 @@ func main() {
 		fmt.Println(i)
 	}
 
+	// 	var outf *os.File
+	//	var err error
+	//	if len(os.Args) >= 2 {
+	//		switch f := os.Args[1]; f {
+	//		case "-":
+	//			outf = os.Stdout
+	//		default:
+	//			outf, err = os.OpenFile(f, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0755)
+	//		}
+	//	} else {
+	//		outf, err = os.OpenFile("/dev/audio", os.O_WRONLY, 0755)
+	//	}
+	//	check(err)
+	//
+	//	_ = outf
 	//	outp := New
 	//	go out(Modin{"in": outc}, nil, outf, 1024) // Get bufsize from /dev/audioctl
 	//

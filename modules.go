@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/binary"
 	"math"
-	"os"
 	"strconv"
 )
 
@@ -55,61 +53,6 @@ func constval(m ModIO) {
 	check(err)
 	for {
 		out.Send(Sample(val))
-	}
-}
-
-func ewrite(outf *os.File, obuf []byte) {
-	for {
-		_, err := outf.Write(obuf)
-		if err == nil {
-			break
-		}
-		if IsMundaneError(err) {
-			continue
-		}
-		check(err)
-	}
-}
-
-func init() {
-	Modtbl["out"] = Modentry{
-		// out is a special case, its function doesn't fit the mold
-		Inputs:     []string{"in"},
-		Parameters: []string{"stereo"},
-	}
-}
-
-func out(m ModIO, outf *os.File, obufsiz int) {
-	in := m.i["in"]
-	obuf := make([]byte, obufsiz)
-	to := obuf
-
-	bc := make(chan byte)
-	sc := make(chan Sample)
-	go func() {
-		for {
-			s := in.Recv()
-			sc <- s
-			sc <- s
-		}
-	}()
-	go func() {
-		bs := make([]byte, 2)
-		for {
-			s := <-sc
-			binary.LittleEndian.PutUint16(bs, uint16(s*Sample(odepth)))
-			for _, b := range bs {
-				bc <- b
-			}
-		}
-	}()
-	for b := range bc {
-		if len(to) == 0 {
-			to = obuf
-			ewrite(outf, obuf)
-		}
-		to[0] = b
-		to = to[1:]
 	}
 }
 
@@ -195,3 +138,58 @@ func sinshp(m ModIO) {
 		out.Send(Sample(math.Sin(2.0 * math.Pi * float64(s))))
 	}
 }
+
+//func ewrite(outf *os.File, obuf []byte) {
+//	for {
+//		_, err := outf.Write(obuf)
+//		if err == nil {
+//			break
+//		}
+//		if IsMundaneError(err) {
+//			continue
+//		}
+//		check(err)
+//	}
+//}
+//
+//func init() {
+//	Modtbl["out"] = Modentry{
+//		// out is a special case, its function doesn't fit the mold
+//		Inputs:     []string{"in"},
+//		Parameters: []string{"stereo"},
+//	}
+//}
+//
+//func out(m ModIO, outf *os.File, obufsiz int) {
+//	in := m.i["in"]
+//	obuf := make([]byte, obufsiz)
+//	to := obuf
+//
+//	bc := make(chan byte)
+//	sc := make(chan Sample)
+//	go func() {
+//		for {
+//			s := in.Recv()
+//			sc <- s
+//			sc <- s
+//		}
+//	}()
+//	go func() {
+//		bs := make([]byte, 2)
+//		for {
+//			s := <-sc
+//			binary.LittleEndian.PutUint16(bs, uint16(s*Sample(odepth)))
+//			for _, b := range bs {
+//				bc <- b
+//			}
+//		}
+//	}()
+//	for b := range bc {
+//		if len(to) == 0 {
+//			to = obuf
+//			ewrite(outf, obuf)
+//		}
+//		to[0] = b
+//		to = to[1:]
+//	}
+//}
